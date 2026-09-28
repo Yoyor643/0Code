@@ -25,20 +25,16 @@ K = X @ W_K
 V = X @ W_V
 
 # 注意力分数
-A = Q @ K.T
-print(A.shape)
+scores = Q @ K.T
+print(scores.shape)
 
 # 缩放
-A = A / np.sqrt(d_k)
+scores = scores / np.sqrt(d_k)
 
 def softmax(x):
-    x = x - np.max(x)
+    x = x - np.max(x, axis=-1, keepdim=True)
     exp_x = np.exp(x)
-    x = exp_x / np.sum(exp_x)
-
-# 逐行做softmax
-for x in A:
-    softmax(x)
     
-O = A @ V 
-print(O.shape())
+    return exp_x / np.sum(x, axis=-1, keepdim=True)
+
+attention_weight = softmax(scores)
