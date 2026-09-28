@@ -2,6 +2,7 @@ import numpy as np
 
 np.random.seed(42)
 
+# X.shape是(3, 4)，3个token/4维(d_model=4)
 X = np.array([
     [1.0, 0.0, 1.0, 0.0],
     [0.0, 2.0, 0.0, 2.0],
@@ -24,17 +25,24 @@ Q = X @ W_Q
 K = X @ W_K
 V = X @ W_V
 
-# 注意力分数
-scores = Q @ K.T
+############### 注意力分数 #################
+scores = Q @ K.T # i,j 表示第 i 个 Query 和第 j 个 Key 的匹配程度
 print(scores.shape)
 
 # 缩放
 scores = scores / np.sqrt(d_k)
 
+
+
+############# self attention weight ##############
 def softmax(x):
-    x = x - np.max(x, axis=-1, keepdim=True)
+    # 减去每行的最大值，结果不会变，但计算更稳定
+    x = x - np.max(x, axis=-1, keepdims=True)
     exp_x = np.exp(x)
     
-    return exp_x / np.sum(x, axis=-1, keepdim=True)
+    return exp_x / np.sum(exp_x, axis=-1, keepdims=True)
 
 attention_weight = softmax(scores)
+
+############# weight 结合 Value --> 最终结果 #################
+O = attention_weight @ V
