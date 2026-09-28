@@ -35,15 +35,13 @@ scores = scores / np.sqrt(d_k)
 
 ############# causal mask ###################
 seq_len = X.shape[0] # 取token数量
-
-# 全是 1 的矩阵 
-one = np.ones(seq_len, seq_len)
-# 取上三角矩阵
-causal_mask = np.triu(one)
-# 上三角取 -∞，只留下三角为0
-causal_mask = causal_mask * (-np.inf)
-
-
+positions = np.arange(seq_len) # 生成np数组[0, 1, 2]
+# 索引里的 None 表示增加一个维度，: 表示取所有元素
+# 在前面加维度：[0, 1, 2] --> [[0, 1, 2]] 行向量
+# 在后面加维度：[0, 1, 2] --> [[0], [1], [2]] 列向量
+# 利用广播机制，得到上三角（不带对角线）的 布尔矩阵
+future_mask = positions[None, :] > positions[:, None]
+scores[future_mask] = -np.inf # 布尔索引
 
 ############# self attention weight ##############
 def softmax(x):
@@ -53,7 +51,7 @@ def softmax(x):
     
     return exp_x / np.sum(exp_x, axis=-1, keepdims=True)
 
-attention_weight = softmax(scores + causal_mask) # 因果掩码：不看未来的token
+attention_weight = softmax(scores) # 因果掩码：不看未来的token
 
 ############# weight 结合 Value --> 最终结果 #################
 O = attention_weight @ V
