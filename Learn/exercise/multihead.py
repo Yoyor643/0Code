@@ -15,6 +15,7 @@ d_v = d_model // n_heads
 W_Q = np.random.randn(d_model, d_model)
 W_K = np.random.randn(d_model, d_model)
 W_V = np.random.randn(d_model, d_model)
+W_O = np.random.randn(d_model, d_model)
 
 Q = X @ W_Q
 K = X @ W_K
@@ -33,6 +34,11 @@ V = V.transpose(1, 0, 2)
 scores = Q @ K.transpose(0, 2, 1)
 scores = scores / np.sqrt(d_k)
 
+# 掩码
+positions = np.arange(seq_len)
+future = positions[None, :] > positions[:, None]
+scores = np.where(future[None, :, :], -np.inf, scores)
+
 def softmax(x):
     x = x - np.max(x, axis=-1, keepdims=True)
     exp_x = np.exp(x)
@@ -43,3 +49,6 @@ attention_weight = softmax(scores)
 O = attention_weight @ V
 O = O.transpose(1, 0, 2)
 O = O.reshape(seq_len, d_model)
+
+# 输出投影
+O = O @ W_O
