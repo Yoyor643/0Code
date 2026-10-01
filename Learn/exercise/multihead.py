@@ -26,19 +26,20 @@ Q = Q.reshape(seq_len, n_heads, d_k)
 K = K.reshape(seq_len, n_heads, d_k)
 V = V.reshape(seq_len, n_heads, d_v)
 
-Q = np.transpose(1, 0, 2)
-K = np.transpose(1, 0, 2)
-V = np.transpose(1, 0, 2)
+Q = Q.transpose(1, 0, 2)
+K = K.transpose(1, 0, 2)
+V = V.transpose(1, 0, 2)
 
 scores = Q @ K.transpose(0, 2, 1)
+scores = scores / np.sqrt(d_k)
 
 def softmax(x):
     x = x - np.max(x, axis=-1, keepdims=True)
     exp_x = np.exp(x)
     
-    return exp_x / np.sum(x, axis=-1, keepdims=True)
+    return exp_x / np.sum(exp_x, axis=-1, keepdims=True)
 
 attention_weight = softmax(scores)
 O = attention_weight @ V
-O = np.transpose(1, 0, 2)
+O = O.transpose(1, 0, 2)
 O = O.reshape(seq_len, d_model)
